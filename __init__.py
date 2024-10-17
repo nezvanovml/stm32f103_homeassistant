@@ -8,7 +8,7 @@ from .const import DOMAIN, MANUFACTURER
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from datetime import timedelta
 from typing import Any
-from asyncio import timeout
+from asyncio import timeout, TimeoutError
 import logging
 from homeassistant.helpers.device_registry import DeviceInfo
 
@@ -55,6 +55,8 @@ class STMDeviceDataUpdateCoordinator(
         self.state = {}
         self.system_info = None
 
+        self.connection_error = False
+
         update_interval = timedelta(seconds=5)
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
@@ -62,11 +64,47 @@ class STMDeviceDataUpdateCoordinator(
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via library."""
         try:
-            async with timeout(10):
+            async with timeout(5):
                 if not self.system_info:
                     self.system_info = await self.device.system_info
                 current = await self.device.state
+        except TimeoutError as error:
+            self.connection_error = True
+            raise UpdateFailed(error) from error
         except (APIError, ConnectionError, InvalidMethod) as error:
             raise UpdateFailed(error) from error
-        _LOGGER.error(f"Loaded data: {current}")
+        _LOGGER.info(f"Loaded data: {current}")
+
+
+        if self.connection_error:
+            self.connection_error = False
+            await self.restore_controller_state()
+        self.state = current
         return current
+
+    async def restore_controller_state(self):
+        _LOGGER.warning((f"Restoring {await self.device.ip_address} to {self.state}"))
+        if "v_numeric" in self.state:
+            i = 1
+            params = {}
+            for value in self.state["v_numeric"]:
+                params[f"{i}"] = int(value)
+                i += 1
+            await self.device.api_request("v_numeric", "POST", params)
+
+        if "v_switch" in self.state:
+            i = 1
+            params = {}
+            for value in self.state["v_switch"]:
+                params[f"{i}"] = int(value)
+                i += 1
+            await self.device.api_request("v_switch", "POST", params)
+
+        if "relay" in self.state:
+            i = 1
+            params = {}
+            for value in self.state["relay"]:
+                params[f"{i}"] = int(value)
+                i += 1
+            await self.device.api_request("relay", "POST", params)
+

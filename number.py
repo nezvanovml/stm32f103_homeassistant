@@ -1,5 +1,5 @@
 from __future__ import annotations
-from homeassistant.components.number import NumberDeviceClass, NumberEntity
+from homeassistant.components.number import NumberDeviceClass, NumberEntity, RestoreNumber
 from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 from . import STMDeviceDataUpdateCoordinator
@@ -29,7 +29,7 @@ async def async_setup_entry(
     async_add_entities(numbers)
 
 
-class VirtualNumber(CoordinatorEntity, NumberEntity):
+class VirtualNumber(CoordinatorEntity, RestoreNumber , NumberEntity):
     """Representation of a virtual numeric."""
     _attr_has_entity_name = True
 
@@ -44,9 +44,10 @@ class VirtualNumber(CoordinatorEntity, NumberEntity):
         self._coordinator = coordinator
         self._attr_native_value = self._get_numeric_data(coordinator.data)
 
+
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
-        await self._coordinator.device.api_request("v_numeric", "POST", {f"{self.idx}": value})
+        await self._coordinator.device.api_request("v_numeric", "POST", {f"{self.idx}": int(value)})
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -61,3 +62,14 @@ class VirtualNumber(CoordinatorEntity, NumberEntity):
         if len(data["v_numeric"]) < self.idx:
             return None
         return float(data["v_numeric"][(self.idx) - 1])
+
+
+    async def async_added_to_hass(self) -> None:
+        """Restore on startup."""
+        await super().async_added_to_hass()
+
+        if not (await self.async_get_last_number_data()):
+            return
+        self._attr_native_value = self.native_value
+        if self.native_value != 0:
+            await self.async_set_native_value(self.native_value)

@@ -8,6 +8,7 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from homeassistant.core import callback
 
@@ -31,7 +32,7 @@ async def async_setup_entry(
     async_add_entities(switches)
 
 
-class RelaySwitch(CoordinatorEntity, SwitchEntity):
+class RelaySwitch(CoordinatorEntity, RestoreEntity, SwitchEntity):
     """Representation of a switch."""
     _attr_has_entity_name = True
 
@@ -71,7 +72,17 @@ class RelaySwitch(CoordinatorEntity, SwitchEntity):
             return None
         return bool(data["relay"][(self.idx) - 1])
 
-class VirtualSwitch(CoordinatorEntity, SwitchEntity):
+    async def async_added_to_hass(self) -> None:
+        """Restore on startup."""
+        await super().async_added_to_hass()
+
+        if not (last_state := await self.async_get_last_state()):
+            return
+        self._attr_is_on = True if last_state.state == "on" else False
+        if self._attr_is_on:
+            await self._coordinator.device.api_request("relay", "POST", {f"{self.idx}": 1})
+
+class VirtualSwitch(CoordinatorEntity, RestoreEntity, SwitchEntity):
     """Representation of a virtual switch."""
     _attr_has_entity_name = True
 
@@ -108,3 +119,13 @@ class VirtualSwitch(CoordinatorEntity, SwitchEntity):
         if len(data["v_switch"]) < self.idx:
             return None
         return bool(data["v_switch"][(self.idx) - 1])
+
+    async def async_added_to_hass(self) -> None:
+        """Restore on startup."""
+        await super().async_added_to_hass()
+
+        if not (last_state := await self.async_get_last_state()):
+            return
+        self._attr_is_on = True if last_state.state == "on" else False
+        if self._attr_is_on:
+            await self._coordinator.device.api_request("v_switch", "POST", {f"{self.idx}": 1})

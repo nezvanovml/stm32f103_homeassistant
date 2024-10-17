@@ -23,7 +23,7 @@ class STMDevice():
         if not params:
             params = "{}"
 
-        _LOGGER.error(f"Request: {endpoint} ({method}): {params}")
+        _LOGGER.info(f"Request: {endpoint} ({method}): {params}")
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.request(method, f"http://{self._ip_address}/{endpoint}",
@@ -31,9 +31,11 @@ class STMDevice():
                     if response.status == 200:
                         return await response.json()
                     else:
+                        _LOGGER.error(
+                            f"APIError. IP address: {self._ip_address}. Endpoint: {endpoint}. Params: {params}. Status: {response.status} ")
                         raise APIError
             except Exception as error:
-                _LOGGER.error(f"Error connecting to API. Error: {error}")
+                _LOGGER.error(f"Error connecting to API. Error: {error}. IP address: {self._ip_address}. Endpoint: {endpoint}. Params: {params}. ")
                 raise ConnectionError
 
     @property
