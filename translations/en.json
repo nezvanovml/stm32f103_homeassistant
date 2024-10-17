@@ -1,4 +1,4 @@
-en.json{
+{
     "config": {
         "abort": {
             "already_configured": "Device with same IP already configured"
