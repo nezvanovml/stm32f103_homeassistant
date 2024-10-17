@@ -1,0 +1,19 @@
+en.json{
+    "config": {
+        "abort": {
+            "already_configured": "Device with same IP already configured"
+        },
+        "error": {
+            "cannot_connect": "Unable to connect. Check provided IP and try to ping device.",
+            "invalid_ip": "Invalid IP",
+            "unknown": "Unknown error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "ip_address": "Device IP"
+                }
+            }
+        }
+   }
+}

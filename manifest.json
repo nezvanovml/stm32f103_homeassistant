@@ -1,0 +1,11 @@
+{
+  "domain": "stm32f103_homeassistant",
+  "name": "STM32F103 Controller integration",
+  "codeowners": ["@nezvanovml"],
+  "config_flow": true,
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "requirements": ["aiohttp>=3.9.0"],
+  "version": "1.0",
+  "single_config_entry": false
+}
