@@ -25,8 +25,8 @@ async def async_setup_entry(
     if "relay" in coordinator.system_info:
         for i in range(1, coordinator.system_info.get("relay") + 1):
             switches.append(RelaySwitch(coordinator, i))
-    if "virtual_switch" in coordinator.system_info:
-        for i in range(1, coordinator.system_info.get("virtual_switch") + 1):
+    if "v_switch" in coordinator.system_info:
+        for i in range(1, coordinator.system_info.get("v_switch") + 1):
             switches.append(VirtualSwitch(coordinator, i))
     async_add_entities(switches)
 
@@ -87,12 +87,12 @@ class VirtualSwitch(CoordinatorEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
-        await self._coordinator.device.api_request("virtual_switch", "POST", {f"{self.idx}": 1})
+        await self._coordinator.device.api_request("v_switch", "POST", {f"{self.idx}": 1})
         await self._coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the device off."""
-        await self._coordinator.device.api_request("virtual_switch", "POST", {f"{self.idx}": 0})
+        await self._coordinator.device.api_request("v_switch", "POST", {f"{self.idx}": 0})
         await self._coordinator.async_request_refresh()
 
     @callback
@@ -103,8 +103,8 @@ class VirtualSwitch(CoordinatorEntity, SwitchEntity):
 
     def _get_switch_data(self, data):
         """Get switch data."""
-        if not "virtual_switch" in data:
+        if not "v_switch" in data:
             return None
-        if len(data["virtual_switch"]) < self.idx:
+        if len(data["v_switch"]) < self.idx:
             return None
-        return bool(data["virtual_switch"][(self.idx) - 1])
+        return bool(data["v_switch"][(self.idx) - 1])

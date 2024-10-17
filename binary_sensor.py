@@ -26,8 +26,8 @@ async def async_setup_entry(
     if "binary_sensor" in coordinator.system_info:
         for i in range(1, coordinator.system_info.get("binary_sensor") + 1):
             binary_sensors.append(SimpleBinarySensor(coordinator, i))
-    if "virtual_binary_sensor" in coordinator.system_info:
-        for i in range(1, coordinator.system_info.get("virtual_binary_sensor") + 1):
+    if "v_binary_sensor" in coordinator.system_info:
+        for i in range(1, coordinator.system_info.get("v_binary_sensor") + 1):
             binary_sensors.append(VirtualBinarySensor(coordinator, i))
     async_add_entities(binary_sensors)
 
@@ -112,8 +112,8 @@ class VirtualBinarySensor(CoordinatorEntity, BinarySensorEntity):
 
     def _get_sensor_data(self, data):
         """Get sensor data."""
-        if "virtual_binary_sensor" not in data:
+        if "v_binary_sensor" not in data:
             return None
-        if len(data["virtual_binary_sensor"]) < self.idx:
+        if len(data["v_binary_sensor"]) < self.idx:
             return None
-        return bool(data["virtual_binary_sensor"][(self.idx) - 1])
+        return bool(data["v_binary_sensor"][(self.idx) - 1])

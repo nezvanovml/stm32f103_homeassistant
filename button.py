@@ -22,8 +22,8 @@ async def async_setup_entry(
     if "relay" in coordinator.system_info:
         for i in range(1, coordinator.system_info.get("relay") + 1):
             buttons.append(RelayButton(coordinator, i))
-    if "virtual_button" in coordinator.system_info:
-        for i in range(1, coordinator.system_info.get("virtual_button") + 1):
+    if "v_button" in coordinator.system_info:
+        for i in range(1, coordinator.system_info.get("v_button") + 1):
             buttons.append(VirtualButton(coordinator, i))
     async_add_entities(buttons)
 
@@ -62,6 +62,6 @@ class VirtualButton(CoordinatorEntity, ButtonEntity):
 
     async def async_press(self, **kwargs: Any) -> None:
         """Turn the switch on."""
-        if "virtual_button" in self._coordinator.system_info and self._coordinator.system_info["virtual_button"] >= self.idx:
-            await self._coordinator.device.api_request("virtual_button", "POST", {f"{self.idx}": "1"})
+        if "v_button" in self._coordinator.system_info and self._coordinator.system_info["v_button"] >= self.idx:
+            await self._coordinator.device.api_request("v_button", "POST", {f"{self.idx}": "1"})
             await self._coordinator.async_request_refresh()
