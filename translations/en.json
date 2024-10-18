@@ -6,12 +6,14 @@
         "error": {
             "cannot_connect": "Unable to connect. Check provided IP and try to ping device.",
             "invalid_ip": "Invalid IP",
+            "invalid_name": "Invalid name, must be at least 5 symbols.",
             "unknown": "Unknown error"
         },
         "step": {
             "user": {
                 "data": {
-                    "ip_address": "Device IP"
+                    "ip_address": "Device IP",
+                    "name": "Device name"
                 }
             }
         }

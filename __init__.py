@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -8,7 +8,6 @@ from homeassistant.const import CONF_IP_ADDRESS, CONF_NAME, Platform
 from .stm_device import STMDevice, APIError, ConnectionError, InvalidMethod
 from .const import DOMAIN, MANUFACTURER
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from datetime import timedelta
 from typing import Any
 from asyncio import timeout, TimeoutError
 import logging
@@ -61,7 +60,7 @@ class STMDeviceDataUpdateCoordinator(
         self.connection_error = False
         self.seconds_since_start = 0
         self.works_since = None
-        update_interval = timedelta(seconds=5)
+        update_interval = dt.timedelta(seconds=5)
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
 
@@ -81,13 +80,13 @@ class STMDeviceDataUpdateCoordinator(
             seconds_since_start = int(current["up"])
 
             if not self.works_since:
-                self.works_since = datetime.datetime.now(datetime.UTC) - datetime.timedelta(
+                self.works_since = dt.datetime.now(dt.UTC) - dt.timedelta(
                     seconds=seconds_since_start)
 
             if seconds_since_start < self.seconds_since_start:
                 # device restarted, need restoring state
                 await self.restore_controller_state()
-                self.works_since = datetime.datetime.now(datetime.UTC) - datetime.timedelta(
+                self.works_since = dt.datetime.now(dt.UTC) - dt.timedelta(
                     seconds=seconds_since_start)
 
             self.seconds_since_start = seconds_since_start

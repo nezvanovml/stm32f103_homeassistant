@@ -8,7 +8,7 @@ import voluptuous as vol
 
 from homeassistant import config_entries, exceptions
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_IP_ADDRESS
+from homeassistant.const import CONF_IP_ADDRESS, CONF_NAME
 
 from .const import DOMAIN
 from .stm_device import STMDevice, InvalidIP, ConnectionError, APIError
@@ -30,6 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_IP_ADDRESS): str,
+        vol.Required(CONF_NAME): str,
      }
 )
 
@@ -39,8 +40,10 @@ async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
 
     Data has the keys from DATA_SCHEMA with values provided by the user.
     """
+    if len(data[CONF_NAME]) < 5:
+        raise InvalidName
     device = STMDevice(data[CONF_IP_ADDRESS])
-    return {"title": data[CONF_IP_ADDRESS]}
+    return {"title": data[CONF_NAME]}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -74,6 +77,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # comments on `DATA_SCHEMA` for further details.
                 # Set the error on the `host` field, not the entire form.
                 errors["ip"] = "invalid_ip"
+            except InvalidName:
+                # The error string is set here, and should be translated.
+                # This example does not currently cover translations, see the
+                # comments on `DATA_SCHEMA` for further details.
+                # Set the error on the `host` field, not the entire form.
+                errors["name"] = "invalid_name"
             except Exception: 
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
@@ -84,3 +93,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user", data_schema=DATA_SCHEMA, errors=errors
         )
+
+class InvalidName(Exception):
+    """Error to indicate there is an invalid Name."""

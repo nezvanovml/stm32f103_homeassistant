@@ -31,7 +31,7 @@ class STMDevice():
                     if response.status == 200:
                         return await response.json()
                     else:
-                        _LOGGER.error(
+                        _LOGGER.warning(
                             f"APIError. IP address: {self._ip_address}. Endpoint: {endpoint}. Params: {params}. Status: {response.status} ")
                         raise APIError
             except Exception as error:
