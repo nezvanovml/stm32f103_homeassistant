@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import datetime
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_IP_ADDRESS, CONF_NAME, Platform
@@ -13,7 +15,8 @@ import logging
 from homeassistant.helpers.device_registry import DeviceInfo
 
 _LOGGER = logging.getLogger(__name__)
-PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BUTTON, Platform.BINARY_SENSOR, Platform.NUMBER]
+PLATFORMS = [Platform.SENSOR, Platform.SWITCH, Platform.BUTTON, Platform.BINARY_SENSOR, Platform.NUMBER,
+             Platform.DATETIME]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -56,7 +59,8 @@ class STMDeviceDataUpdateCoordinator(
         self.system_info = None
 
         self.connection_error = False
-
+        self.seconds_since_start = 0
+        self.works_since = None
         update_interval = timedelta(seconds=5)
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
@@ -68,17 +72,25 @@ class STMDeviceDataUpdateCoordinator(
                 if not self.system_info:
                     self.system_info = await self.device.system_info
                 current = await self.device.state
-        except TimeoutError as error:
-            self.connection_error = True
-            raise UpdateFailed(error) from error
-        except (APIError, ConnectionError, InvalidMethod) as error:
+        except (APIError, ConnectionError, InvalidMethod, TimeoutError) as error:
             raise UpdateFailed(error) from error
         _LOGGER.info(f"Loaded data: {current}")
 
+        # check seconds_since_start
+        if "up" in current:
+            seconds_since_start = int(current["up"])
 
-        if self.connection_error:
-            self.connection_error = False
-            await self.restore_controller_state()
+            if not self.works_since:
+                self.works_since = datetime.datetime.now(datetime.UTC) - datetime.timedelta(
+                    seconds=seconds_since_start)
+
+            if seconds_since_start < self.seconds_since_start:
+                # device restarted, need restoring state
+                await self.restore_controller_state()
+                self.works_since = datetime.datetime.now(datetime.UTC) - datetime.timedelta(
+                    seconds=seconds_since_start)
+
+            self.seconds_since_start = seconds_since_start
         self.state = current
         return current
 
@@ -107,4 +119,3 @@ class STMDeviceDataUpdateCoordinator(
                 params[f"{i}"] = int(value)
                 i += 1
             await self.device.api_request("relay", "POST", params)
-
