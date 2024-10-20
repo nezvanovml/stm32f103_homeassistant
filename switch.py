@@ -46,17 +46,17 @@ class RelaySwitch(CoordinatorEntity, RestoreEntity, SwitchEntity):
         self._coordinator = coordinator
         self._attr_is_on = self._get_switch_data(coordinator.data)
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs) -> None:
         """Turn the switch on."""
         if "relay" in self._coordinator.system_info and self._coordinator.system_info["relay"] >= self.idx:
             await self._coordinator.device.api_request("relay", "POST", {f"{self.idx}": 1})
-            await self._coordinator.async_request_refresh()
+            # await self._coordinator.async_request_refresh()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Turn the device off."""
         if "relay" in self._coordinator.system_info and self._coordinator.system_info["relay"] >= self.idx:
             await self._coordinator.device.api_request("relay", "POST", {f"{self.idx}": 0})
-            await self._coordinator.async_request_refresh()
+            # await self._coordinator.async_request_refresh()
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -96,15 +96,15 @@ class VirtualSwitch(CoordinatorEntity, RestoreEntity, SwitchEntity):
         self._coordinator = coordinator
         self._attr_is_on = self._get_switch_data(coordinator.data)
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs) -> None:
         """Turn the switch on."""
         await self._coordinator.device.api_request("v_switch", "POST", {f"{self.idx}": 1})
-        await self._coordinator.async_request_refresh()
+        # await self._coordinator.async_request_refresh()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Turn the device off."""
         await self._coordinator.device.api_request("v_switch", "POST", {f"{self.idx}": 0})
-        await self._coordinator.async_request_refresh()
+        # await self._coordinator.async_request_refresh()
 
     @callback
     def _handle_coordinator_update(self) -> None:

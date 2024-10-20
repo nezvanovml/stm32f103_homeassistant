@@ -60,7 +60,7 @@ class STMDeviceDataUpdateCoordinator(
         self.connection_error = False
         self.seconds_since_start = 0
         self.works_since = None
-        update_interval = dt.timedelta(seconds=5)
+        update_interval = dt.timedelta(seconds=1)
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
 

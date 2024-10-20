@@ -41,11 +41,11 @@ class RelayButton(CoordinatorEntity, ButtonEntity):
         self._attr_name = f"Импульс (Реле {idx})"
         self._coordinator = coordinator
 
-    async def async_press(self, **kwargs: Any) -> None:
+    async def async_press(self, **kwargs) -> None:
         """Turn the switch on."""
         if "relay" in self._coordinator.system_info and  self._coordinator.system_info["relay"] >= self.idx:
             await self._coordinator.device.api_request("relay", "POST", {f"{self.idx}": "i"})
-            await self._coordinator.async_request_refresh()
+            # await self._coordinator.async_request_refresh()
 
 class VirtualButton(CoordinatorEntity, ButtonEntity):
     """Representation of a virtual button."""
@@ -60,8 +60,8 @@ class VirtualButton(CoordinatorEntity, ButtonEntity):
         self._attr_name = f"Виртуальная кнопка {idx}"
         self._coordinator = coordinator
 
-    async def async_press(self, **kwargs: Any) -> None:
+    async def async_press(self, **kwargs) -> None:
         """Turn the switch on."""
         if "v_button" in self._coordinator.system_info and self._coordinator.system_info["v_button"] >= self.idx:
             await self._coordinator.device.api_request("v_button", "POST", {f"{self.idx}": "1"})
-            await self._coordinator.async_request_refresh()
+            # await self._coordinator.async_request_refresh()
