@@ -52,8 +52,9 @@ class VirtualNumber(CoordinatorEntity, RestoreNumber , NumberEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle data update."""
-        self._attr_native_value = self._get_numeric_data(self._coordinator.data)
-        self.async_write_ha_state()
+        if self._attr_native_value != self._get_numeric_data(self._coordinator.data):
+            self._attr_native_value = self._get_numeric_data(self._coordinator.data)
+            self.async_write_ha_state()
 
     def _get_numeric_data(self, data):
         """Get number data."""
