@@ -56,7 +56,7 @@ class STMDeviceDataUpdateCoordinator(
         )
         self.state = {}
         self.system_info = None
-
+        self.ip_address = ip_address
         self.connection_error = False
         self.seconds_since_start = 0
         self.works_since = None
@@ -72,6 +72,7 @@ class STMDeviceDataUpdateCoordinator(
                     self.system_info = await self.device.system_info
                 current = await self.device.state
         except (APIError, ConnectionError, InvalidMethod, TimeoutError) as error:
+            _LOGGER.warning(f"Unable to fetch data from {self.ip_address}.")
             raise UpdateFailed(error) from error
         _LOGGER.info(f"Loaded data: {current}")
 

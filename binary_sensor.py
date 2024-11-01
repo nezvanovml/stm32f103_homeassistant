@@ -22,7 +22,8 @@ async def async_setup_entry(
     binary_sensors = []
     if "button" in coordinator.system_info:
         for i in range(1, coordinator.system_info.get("button") + 1):
-            binary_sensors.append(ButtonBinarySensor(coordinator, i))
+            binary_sensors.append(ButtonShortBinarySensor(coordinator, i))
+            binary_sensors.append(ButtonLongBinarySensor(coordinator, i))
     if "binary_sensor" in coordinator.system_info:
         for i in range(1, coordinator.system_info.get("binary_sensor") + 1):
             binary_sensors.append(SimpleBinarySensor(coordinator, i))
@@ -32,8 +33,8 @@ async def async_setup_entry(
     async_add_entities(binary_sensors)
 
 
-class ButtonBinarySensor(CoordinatorEntity, BinarySensorEntity):
-    """Representation of a binary sensor."""
+class ButtonShortBinarySensor(CoordinatorEntity, BinarySensorEntity):
+    """Representation of a short-pressed button."""
     _attr_has_entity_name = True
 
     def __init__(self, coordinator, idx) -> None:
@@ -42,14 +43,14 @@ class ButtonBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self.idx = idx
         self._attr_unique_id = f"{coordinator.system_info['device_index']}_button_{idx}".lower()
         self._attr_device_info = coordinator.device_info
-        self._attr_name = f"Кнопка {idx}"
+        self._attr_name = f"Кнопка {idx} (короткое нажатие)"
         self._coordinator = coordinator
-        self._attr_is_on = self._get_sensor_data(coordinator)
+        self._attr_is_on = self._get_sensor_data(self._coordinator.data)
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle data update."""
-        self._attr_is_on = self._get_sensor_data(self._coordinator)
+        self._attr_is_on = self._get_sensor_data(self._coordinator.data)
         self.async_write_ha_state()
 
     def _get_sensor_data(self, data):
@@ -59,6 +60,36 @@ class ButtonBinarySensor(CoordinatorEntity, BinarySensorEntity):
         if len(data["button"]) < self.idx:
             return None
         return bool(data["button"][(self.idx) - 1])
+
+class ButtonLongBinarySensor(CoordinatorEntity, BinarySensorEntity):
+    """Representation of a long-pressed button."""
+    _attr_has_entity_name = True
+
+    def __init__(self, coordinator, idx) -> None:
+        """Initialize the binary sensor."""
+        super().__init__(coordinator)
+        self.idx = idx
+        self._attr_unique_id = f"{coordinator.system_info['device_index']}_button_long_{idx}".lower()
+        self._attr_device_info = coordinator.device_info
+        self._attr_name = f"Кнопка {idx} (длинное нажатие)"
+        self._coordinator = coordinator
+        self._attr_is_on = self._get_sensor_data(self._coordinator.data)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle data update."""
+        self._attr_is_on = self._get_sensor_data(self._coordinator.data)
+        self.async_write_ha_state()
+
+    def _get_sensor_data(self, data):
+        """Get sensor data."""
+        if not "button_long" in data:
+            return None
+        if len(data["button_long"]) < self.idx:
+            return None
+        return bool(data["button_long"][(self.idx) - 1])
+
+
 
 
 class SimpleBinarySensor(CoordinatorEntity, BinarySensorEntity):
