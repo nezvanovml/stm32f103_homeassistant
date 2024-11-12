@@ -31,12 +31,11 @@ class STMDevice():
                     if response.status == 200:
                         return await response.json()
                     else:
-                        _LOGGER.warning(
-                            f"APIError. IP address: {self._ip_address}. Endpoint: {endpoint}. Params: {params}. Status: {response.status} ")
-                        raise APIError
+                        # _LOGGER.warning(f"APIError. IP address: {self._ip_address}. Endpoint: {endpoint}. Params: {params}. Status: {response.status} ")
+                        raise APIError(f"Request to {self._ip_address} ({endpoint}): returned code {response.status}")
             except Exception as error:
-                _LOGGER.error(f"Error connecting to API. Error: {error}. IP address: {self._ip_address}. Endpoint: {endpoint}. Params: {params}. ")
-                raise ConnectionError
+                # _LOGGER.error(f"Error connecting to API. Error: {error}. IP address: {self._ip_address}. Endpoint: {endpoint}. Params: {params}. ")
+                raise ConnectionError(f"Request to {self._ip_address} ({endpoint}): no answer from device")
 
     @property
     async def system_info(self):
