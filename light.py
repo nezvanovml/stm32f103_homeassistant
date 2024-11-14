@@ -1,5 +1,5 @@
 from __future__ import annotations
-from homeassistant.components.light import LightDeviceClass, LightEntity, ColorMode
+from homeassistant.components.light import LightEntity, ColorMode
 from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 from . import STMDeviceDataUpdateCoordinator
