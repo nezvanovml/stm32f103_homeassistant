@@ -24,16 +24,22 @@ async def async_setup_entry(
     numbers = []
     if "v_numeric" in coordinator.system_info:
         for i in range(1, coordinator.system_info.get("v_numeric") + 1):
-            numbers.append(VirtualNumber(coordinator, i))
+            try:
+                min_value = coordinator.system_info.get("v_numeric_min")[i-1]
+                max_value = coordinator.system_info.get("v_numeric_max")[i-1]
+            except Exception:
+                min_value = 0
+                max_value = 100
+            numbers.append(VirtualNumber(coordinator, i, min_value, max_value))
 
     async_add_entities(numbers)
 
 
-class VirtualNumber(CoordinatorEntity, RestoreNumber , NumberEntity):
+class VirtualNumber(CoordinatorEntity, RestoreNumber, NumberEntity):
     """Representation of a virtual numeric."""
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator, idx) -> None:
+    def __init__(self, coordinator, idx, min_value, max_value) -> None:
         """Initialize the switch."""
         super().__init__(coordinator)
         self.idx = idx
@@ -43,6 +49,8 @@ class VirtualNumber(CoordinatorEntity, RestoreNumber , NumberEntity):
         self._attr_native_step = 1
         self._coordinator = coordinator
         self._attr_native_value = self._get_numeric_data(coordinator.data)
+        self._attr_native_min_value = min_value
+        self._attr_native_max_value = max_value
 
 
     async def async_set_native_value(self, value: float) -> None:

@@ -1,5 +1,5 @@
 # stm32_homeassistant
-Version: 1.0
+Version: 1.2
 
 Integration for Home Assistant.
 
@@ -7,7 +7,9 @@ Installation: clone this repo to config/custom_components/ of your instance of H
 
 Supports:
 * Relays (switches controlling relays)
+* Light (switches controlling lights)
 * VirtualSwitches (virtual switches)
+* VirtualNumber (virtual numbers with set diapason)
 * ButtonBinarySensor (Button inputs on device)
 * SimpleBinarySensor (Binary inputs on device)
 * VirtualBinarySensor (virtual indicators)
