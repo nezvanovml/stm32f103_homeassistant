@@ -119,3 +119,12 @@ class STMDeviceDataUpdateCoordinator(
                 params[f"{i}"] = int(value)
                 i += 1
             await self.device.api_request("relay", "POST", params)
+
+        if "light" in self.state:
+            i = 1
+            params = {}
+            for value in self.state["light"]:
+                params[f"{i}"] = int(value)
+                i += 1
+            await self.device.api_request("light", "POST", params)
+
