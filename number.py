@@ -31,6 +31,9 @@ async def async_setup_entry(
                 min_value = 0
                 max_value = 100
             numbers.append(VirtualNumber(coordinator, i, min_value, max_value))
+    if "counter" in coordinator.system_info:
+        for i in range(1, coordinator.system_info.get("counter") + 1):
+            numbers.append(Counter(coordinator, i))
 
     async_add_entities(numbers)
 
@@ -81,3 +84,39 @@ class VirtualNumber(CoordinatorEntity, RestoreNumber, NumberEntity):
         self._attr_native_value = self.native_value
         if self.native_value != 0:
             await self.async_set_native_value(self.native_value)
+
+class Counter(CoordinatorEntity, NumberEntity):
+    """Representation of a counter."""
+    _attr_has_entity_name = True
+
+    def __init__(self, coordinator, idx) -> None:
+        """Initialize the switch."""
+        super().__init__(coordinator)
+        self.idx = idx
+        self._attr_unique_id = f"{coordinator.system_info['device_index']}_counter_{idx}".lower()
+        self._attr_device_info = coordinator.device_info
+        self._attr_name = f"Счётчик {idx}"
+        self._attr_native_step = 1
+        self._coordinator = coordinator
+        self._attr_native_value = self._get_numeric_data(coordinator.data)
+        self._attr_native_min_value = 0
+        self._attr_native_max_value = 65000
+
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Update the current value."""
+        pass
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle data update."""
+        self._attr_native_value = self._get_numeric_data(self._coordinator.data)
+        self.async_write_ha_state()
+
+    def _get_numeric_data(self, data):
+        """Get counter data."""
+        if not "counter" in data:
+            return None
+        if len(data["counter"]) < self.idx:
+            return None
+        return float(data["counter"][(self.idx) - 1])
