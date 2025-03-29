@@ -34,6 +34,9 @@ async def async_setup_entry(
     if "analog_in" in coordinator.system_info:
         for i in range(1, coordinator.system_info.get("analog_in") + 1):
             sensors.append(AnalogInSensor(coordinator, i))
+    if "counter" in coordinator.system_info:
+        for i in range(1, coordinator.system_info.get("counter") + 1):
+            sensors.append(MeterSensor(coordinator, i))
     async_add_entities(sensors)
 
 
@@ -101,3 +104,39 @@ class AnalogInSensor(CoordinatorEntity, SensorEntity):
         if len(data["analog_in"]) < self.idx:
             return None
         return data["analog_in"][(self.idx) - 1]
+
+
+class MeterSensor(CoordinatorEntity, SensorEntity):
+    """Define an Meter entity."""
+    _attr_has_entity_name = True
+
+    def __init__(
+            self,
+            coordinator: STMDeviceDataUpdateCoordinator,
+            idx: int,
+    ) -> None:
+        """Initialize."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.system_info['device_index']}_counter_{idx}".lower()
+        self._attr_device_info = coordinator.device_info
+        self._attr_device_class = SensorDeviceClass.ENERGY
+        self._attr_name = f"Счётчик ({idx})"
+        # self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+        self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        self.idx = idx
+        self._attr_native_value = self._get_sensor_data(coordinator.data)
+        self._coordinator = coordinator
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle data update."""
+        self._attr_native_value = self._get_sensor_data(self._coordinator.data)
+        self.async_write_ha_state()
+
+    def _get_sensor_data(self, data):
+        """Get sensor data."""
+        if not "counter" in data:
+            return None
+        if len(data["counter"]) < self.idx:
+            return None
+        return data["counter"][(self.idx) - 1]

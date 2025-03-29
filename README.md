@@ -15,3 +15,4 @@ Supports:
 * VirtualBinarySensor (virtual indicators)
 * AnalogInSensor (Analog inputs on devcice, mapped to 0..100)
 * TemperatureSensor (1Wire DS18B20 sensors on device)
+* Meter (Energy/gas/water)
